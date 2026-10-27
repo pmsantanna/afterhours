@@ -41,11 +41,11 @@ Gravação de áudio externo, VST/plugins nativos, piano roll, automação desen
 
 ## Stack técnica
 
-Electron + Vite + React + TypeScript, com o Strudel rodando inteiro no renderer (é lá que existe Web Audio).
+Electron + Vite + React + TypeScript (renderer), com o Strudel rodando inteiro no renderer (é lá que existe Web Audio).
 
 | Camada | Escolha | Por quê |
 | --- | --- | --- |
-| Shell desktop | Electron + electron-vite | HMR no renderer, build de main/preload/renderer num lugar só |
+| Shell desktop | Electron + Vite (concurrently + wait-on), main/preload em CommonJS | Mesmo setup do Noise; o electron-vite quebrava na máquina de dev |
 | UI | React + TypeScript | Familiar; componentes de mixer e timeline |
 | Estado | Zustand + zundo | Store simples com undo/redo pronto |
 | Engine musical | @strudel/core, mini, transpiler, webaudio (superdough) | Patterns, mini-notation e sintetizador/sampler |
@@ -190,14 +190,13 @@ Atalhos essenciais: `Ctrl+Enter` avalia a track, `Ctrl+.` para tudo, `Espaço` p
 ## Estrutura de pastas
 
 ```text
+electron/               # CommonJS, sem build (como no Noise)
+  main.js               # janela, menus, ciclo de vida
+  project-files.js      # abrir/salvar/autosave
+  samples.js            # varredura de pasta + manifesto + protocolo samples://
+  export.js             # escrita de WAV
+  preload.js            # contextBridge: window.studio.*
 src/
-  main/
-    index.ts            # janela, menus, ciclo de vida
-    project-files.ts    # abrir/salvar/autosave
-    samples.ts          # varredura de pasta + manifesto + protocolo samples://
-    export.ts           # escrita de WAV
-  preload/
-    index.ts            # contextBridge: window.studio.*
   shared/
     types.ts            # Project, Track, Scene, Section
     ipc.ts              # nomes e tipos dos canais IPC
@@ -221,7 +220,7 @@ O `compiler/` não importa nada do Strudel nem do React: é a parte mais testáv
 
 Começar por um spike de 1–2 dias que prove o caminho crítico: Strudel tocando dentro do Electron com código gerado.
 
-1. **Fase 0 — Spike:** electron-vite + Strudel tocando `s("bd*4")`; reavaliar código gerado com `$:` e `_$:`; confirmar orbits e `setcps`.
+1. **Fase 0 — Spike:** Electron + Vite + Strudel tocando `s("bd*4")`; reavaliar código gerado com `$:` e `_$:`; confirmar orbits e `setcps`.
 2. **Fase 1 — MVP:** tracks, editor, mixer (gain/pan/mute/solo), VU do master, salvar/abrir, autosave.
 3. **Fase 2 — Música:** cenas, modo live quantizado, `arrange()` no modo música, FX por track, export WAV, samples locais.
 4. **Fase 3 — Performance:** MIDI in nos faders, MIDI out, atalhos de cena, modo tela cheia para stream.

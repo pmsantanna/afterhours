@@ -5,13 +5,15 @@
   "description": "Estúdio desktop de live coding: tracks em Strudel, mixer visual e arranjo por cenas.",
   "license": "AGPL-3.0-only",
   "author": "Pedro Sant'Anna",
-  "main": "./out/main/index.js",
+  "main": "electron/main.js",
   "scripts": {
-    "dev": "electron-vite dev",
-    "build": "electron-vite build",
-    "preview": "electron-vite preview",
-    "dev:web": "vite --config vite.web.config.ts",
-    "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
+    "dev": "concurrently -k \"vite\" \"wait-on tcp:5173 && cross-env VITE_DEV_SERVER_URL=http://localhost:5173 electron .\"",
+    "dev:web": "vite",
+    "build": "vite build",
+    "prestart": "vite build",
+    "start": "electron .",
+    "package": "vite build && electron-builder",
+    "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest"
   },
@@ -27,14 +29,35 @@
     "zustand": "5.0.8"
   },
   "devDependencies": {
-    "@types/node": "22.19.1",
     "@types/react": "19.2.7",
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "5.2.0",
+    "concurrently": "8.2.2",
+    "cross-env": "7.0.3",
     "electron": "45.1.0",
-    "electron-vite": "5.0.0",
+    "electron-builder": "26.17.0",
     "typescript": "5.9.3",
     "vite": "7.3.7",
-    "vitest": "4.1.12"
+    "vitest": "4.1.12",
+    "wait-on": "7.2.0"
+  },
+  "productName": "Afterhours",
+  "build": {
+    "appId": "dev.pedro.afterhours",
+    "productName": "Afterhours",
+    "artifactName": "Afterhours-${version}.${ext}",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**",
+      "electron/**"
+    ],
+    "win": {
+      "target": "nsis"
+    },
+    "linux": {
+      "target": "AppImage"
+    }
   }
 }

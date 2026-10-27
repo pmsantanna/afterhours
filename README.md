@@ -25,13 +25,17 @@ O editor ainda é um `<textarea>`; o CodeMirror do Strudel entra no MVP.
 
 Requer Node 22.12+.
 
+Mesmo setup do Noise: Vite puro para o renderer, e o Electron carrega o dev server em desenvolvimento
+ou o `dist/` em produção. Main e preload são CommonJS simples em `electron/`, sem etapa de build.
+
 ```bash
 npm install
-npm run dev        # app Electron com HMR
+npm run dev        # Vite + Electron (concurrently + wait-on), com HMR
 npm run dev:web    # só o renderer, no navegador (sem window.studio)
+npm start          # build do renderer em dist/ e abre o Electron
 npm test           # testes do compilador (Vitest)
 npm run typecheck
-npm run build      # gera out/ (main, preload, renderer)
+npm run package    # instalador via electron-builder (.exe / AppImage) em release/
 ```
 
 Na primeira vez que der play, os samples (`github:tidalcycles/dirt-samples`) são baixados; precisa de internet.
@@ -46,9 +50,9 @@ UI (React) ──> store (Zustand) ──> compile(project) ──> engine (Stru
 
 | Pasta | Papel |
 | --- | --- |
-| `src/shared/` | Tipos do projeto (`Project`, `Track`...) e contrato do preload |
-| `src/main/` | Janela Electron (contextIsolation, sandbox, sem nodeIntegration) |
-| `src/preload/` | `window.studio`, API mínima. Projeto/samples/export entram no MVP |
+| `electron/main.js` | Janela Electron (contextIsolation, sandbox, sem nodeIntegration) |
+| `electron/preload.js` | `window.studio`, API mínima. Projeto/samples/export entram no MVP |
+| `src/shared/` | Tipos do projeto (`Project`, `Track`...) e contrato de `window.studio` |
 | `src/renderer/compiler/` | `compile()`: função pura, sem Strudel nem React. Testada em `compile.test.ts` |
 | `src/renderer/engine/` | Única pasta que importa `@strudel/*` (init, evaluate, stop, medidor) |
 | `src/renderer/app/engineSync.ts` | Liga store → compilador → engine |
@@ -76,7 +80,6 @@ As versões de `@strudel/*` estão fixadas no `package.json` (a API interna muda
 - [ ] Undo/redo com zundo
 - [ ] Cache dos samples padrão
 - [ ] Remover/reordenar tracks
-- [ ] electron-builder (.exe/AppImage)
 
 ## Licença
 
